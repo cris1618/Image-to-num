@@ -14,6 +14,7 @@ def calculate_digit_level_accuracy(labels, predictions, nrows=99):
     
     total_digits = 0
     correct_digits = 0
+    correct_digits_including_X = 0
 
     with open(labels, newline="") as labels_file:
         reader = csv.DictReader(labels_file)
@@ -26,11 +27,18 @@ def calculate_digit_level_accuracy(labels, predictions, nrows=99):
                 total_digits += 1
                 if label == pred:
                     correct_digits += 1
+                    correct_digits_including_X += 1
+                # New code for testing wheter the X are placed in the correct position
+                # If so, the accuracy should go up (Initial accuracy before implementing this part: 88%)
+                elif pred == "X":
+                    correct_digits_including_X += 1
             
             total_digits += abs(len(true_value) - len(predicted_value))
     
     digit_accuracy = correct_digits / total_digits if total_digits > 0 else 0
+    digit_accuracy_including_X = correct_digits_including_X / total_digits if total_digits > 0 else 0
     print(f"Digit-Level Accuracy: {digit_accuracy:.2%}")
+    print(f"Digit-Level Accuracy counting X as a correct prediction: {digit_accuracy_including_X:.2%}")
     return digit_accuracy
 
 def auto_crop_image(img_path, output_path=None):
@@ -101,10 +109,10 @@ def preprocess_image(input_path, output_path=None):
     
     # Crop it
     width, height = img.size
-    left = int(0.033 * width)
+    left = int(0.1 * width) #0.033 For testing images, 0.05 Broken ones,0.1 Latest 
     top = int(0.4 * height)
-    right = int(0.75 * width)
-    bottom = height
+    right = int(0.80 * width) # 0.75 Before # 0.80 optimal
+    bottom = int(0.75 * height) # Just height before
     cropped = img.crop((left, top, right, bottom))
 
     # Convert grayscale
@@ -115,11 +123,11 @@ def preprocess_image(input_path, output_path=None):
     inverted = ImageOps.invert(gray)
 
     # aplly gaussian
-    blurred = inverted.filter(ImageFilter.GaussianBlur(3.5)) # 3.5 optimal
+    blurred = inverted.filter(ImageFilter.GaussianBlur(1.5)) # 3.5 optimal, 1.5 seems to work fine
 
     # Increase contrast
     enhancer = ImageEnhance.Contrast(blurred)
-    processed = enhancer.enhance(10) # 10 optimal
+    processed = enhancer.enhance(15) # 10 optimal
 
     if output_path:
         processed.save(output_path)

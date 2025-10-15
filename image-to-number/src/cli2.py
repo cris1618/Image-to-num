@@ -34,7 +34,7 @@ def extract_digits(pil_image, conf_thresh=0.0):
     for d in detections:
         # If confidence is low, replace each digit in this detection with X.
         if d["conf"] < conf_thresh:
-            final_digits.extend(["X"] * len(d["text"]))
+            final_digits.extend(["X"] * len(d["text"])) # Prev: final_digits.extend(["X"] * len(d["text"]))
         else:
             final_digits.extend(list(d["text"]))
     
@@ -47,7 +47,11 @@ def extract_digits(pil_image, conf_thresh=0.0):
         final_digits.extend(["X"] * (6 - len(final_digits)))
     elif len(final_digits) > 6:
         final_digits = final_digits[:6]
-    
+
+    # Leave out last digit for test
+    #final_digits[-1] = "X"    
+
+
     return "".join(final_digits)
 
 def main():
@@ -70,7 +74,7 @@ def main():
         recognized_text = extract_digits(pil_image)
 
         # Populate the dictionary for results
-        number_of_rows = 100
+        number_of_rows = 500
         if count_img < number_of_rows:
             res[os.path.basename(img_path)] = recognized_text
         elif count_img == number_of_rows:
